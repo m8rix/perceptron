@@ -26,13 +26,13 @@ class Perceptron
   end
 end
 
-# perceptron = Perceptron.new
-# puts perceptron.guess([-1, 0.5])
+perceptron = Perceptron.new
+puts perceptron.guess([-1, 0.5])
 
-Canvas.new(-1.00..1.00) do |plot, canvas|
-  line = Line.new(rand(canvas.area), rand(canvas.area), canvas.area)
+Canvas.new(-1.00..1.00, -1.00..1.00) do |plot, canvas|
+  line = Line.new(rand(canvas.xrange), rand(canvas.yrange))
   dots = Array.new(100).map do
-    dot = Point.new(rand(canvas.area), rand(canvas.area))
+    dot = Point.new(rand(canvas.xrange), rand(canvas.yrange))
     dot.guessed = [true, false].sample
     dot.above = line.y(dot.x) > dot.y
     dot
@@ -45,7 +45,7 @@ Canvas.new(-1.00..1.00) do |plot, canvas|
     end
   end
 
-  plot.data << Gnuplot::DataSet.new(line.points) do |ds|
+  plot.data << Gnuplot::DataSet.new(line.points(canvas.xrange)) do |ds|
     ds.with = line.draw
     ds.linewidth = 3
   end

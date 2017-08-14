@@ -2,13 +2,24 @@ require "gnuplot"
 require "awesome_print"
 
 class Canvas
-  attr_accessor :area
-  def initialize(area)
-    @area = area
+  attr_accessor :xrange
+  attr_accessor :yrange
+  def initialize(xrange, yrange)
+    @xrange = xrange
+    @yrange = yrange
     Gnuplot.open do |gp|
       Gnuplot::Plot.new( gp ) do |plot|
-        plot.xrange "[#{area.min}:#{area.max}]"
-        plot.yrange "[#{area.min}:#{area.max}]"
+        plot.xrange "[#{xrange.min}:#{xrange.max}]"
+        plot.yrange "[#{yrange.min}:#{yrange.max}]"
+        plot.title  "Perceptron"
+        plot.unset "key"
+        plot.zeroaxis
+        plot.size "ratio 1.0"
+        plot.xtics "axis"
+        plot.ytics "axis"
+        plot.border 0
+        plot.format "xy ''"
+        plot.tics "scale 1"
         yield( plot, self )
       end
     end
@@ -16,10 +27,9 @@ class Canvas
 end
 
 class Line
-  def initialize(slope = nil, intercept = nil, range = -1.00..1.00)
-    @slope = slope || rand(range)
-    @intercept = intercept || rand(range)
-    @range = range
+  def initialize(slope = nil, intercept = nil)
+    @slope = slope
+    @intercept = intercept
     # https://www.youtube.com/watch?v=IL3UCuXrUzE
     puts "y = #{@slope}x + #{-1 * @intercept}"
   end
@@ -28,11 +38,11 @@ class Line
     @slope * x + @intercept
   end
 
-  def points
+  def points(xrange = -1.00..1.00)
     x_plots = []
     y_plots = []
-    @range.step(0.0001) do |x|
-      next unless @range.member?(y(x))
+    xrange.step(0.0001) do |x|
+      next unless xrange.member?(y(x))
       x_plots.push x.round(2)
       y_plots.push y(x).round(2)
     end
