@@ -34,49 +34,53 @@ class Line
     puts "y = #{@slope}x + #{-1 * @intercept}"
   end
 
-  def y(x)
+  def f(x)
     @slope * x + @intercept
   end
 
-  def points(xrange = -1.00..1.00)
+  def draw(xrange = -1.00..1.00)
     x_plots = []
     y_plots = []
     xrange.step(0.0001) do |x|
-      next unless xrange.member?(y(x))
+      next unless xrange.member?(f(x))
       x_plots.push x.round(2)
-      y_plots.push y(x).round(2)
+      y_plots.push f(x).round(2)
     end
     [x_plots.values_at(0, -1), y_plots.values_at(0, -1)]
   end
 
-  def draw
+  def style
     "line lc rgb 'red'"
   end
 end
 
 class Point
-  attr_accessor :guessed
-  attr_accessor :above
   attr_accessor :x
   attr_accessor :y
+  attr_accessor :bias
+  attr_accessor :label
+  attr_accessor :guess
+
   def initialize(x, y)
     @x = x
     @y = y
-  end
-
-  def guessed?
-    @guessed || false
+    @bias = 1
   end
 
   def above?
-    @above || false
+    @label == 1
   end
 
-  def coords
-    [[x], [y]]
+  def guessed?
+    @label == @guess
   end
 
   def draw
+    [[x], [y]]
+  end
+
+  def style
+    return "circle lc rgb 'green' fs transparent solid 0.25" if guessed?
     return "circle lc rgb 'blue' fs transparent solid 0.25" if above?
     "circle lc rgb 'orange' fs transparent solid 0.5"
   end

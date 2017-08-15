@@ -7,46 +7,60 @@ end
 
 class Perceptron
   attr_accessor :weights
+  LR = 0.1
 
   # Constructor
-  def initialize(w = Array.new)
+  def initialize(weights, bias)
     # Initialize the weights randomly
-    @weights = w.map { rand(-1.00..1.00) }
+    @weights = weights.push bias
   end
 
   def guess(inputs)
     sum = 0
-    ## Fill in missing weights
-    @weights = inputs.zip(@weights).map { |i, w| w.to_f.zero? ? rand(-1.00..1.00) : w }
     inputs.zip(@weights).each do |input, weight|
       sum += input * weight
-      puts sum
     end
     sign(sum)
   end
+
+  def train(inputs, label)
+    guess = guess(inputs)
+    error = label - guess
+    # Tune all the weights
+    @weights = inputs.zip(@weights).map { |i, w| w += error * i * LR }
+  end
 end
 
-perceptron = Perceptron.new
-puts perceptron.guess([-1, 0.5])
+xrange = -1.00..1.00
+yrange = -1.00..1.00
 
-Canvas.new(-1.00..1.00, -1.00..1.00) do |plot, canvas|
-  line = Line.new(rand(canvas.xrange), rand(canvas.yrange))
-  dots = Array.new(100).map do
-    dot = Point.new(rand(canvas.xrange), rand(canvas.yrange))
-    dot.guessed = [true, false].sample
-    dot.above = line.y(dot.x) > dot.y
-    dot
-  end
+brain = Perceptron.new([rand(xrange),rand(yrange)], 1)
 
-  dots.each do |dot|
-    plot.data << Gnuplot::DataSet.new(dot.coords) do |ds|
-      ds.with = dot.draw
+line = Line.new(rand(xrange), rand(yrange))
+
+points = Array.new(100).map do
+  point = Point.new(rand(xrange), rand(yrange))
+  point.label = line.f(point.x) > point.y ? 1 : -1
+  point
+end
+
+points.each do |pt|
+  inputs = [pt.x, pt.y, pt.bias]
+  target = pt.label
+  brain.train(inputs, target)
+  pt.guess = brain.guess(inputs)
+end
+
+Canvas.new(xrange, yrange) do |plot, canvas|
+  points.each do |point|
+    plot.data << Gnuplot::DataSet.new(point.draw) do |ds|
+      ds.with = point.style
       ds.notitle
     end
   end
 
-  plot.data << Gnuplot::DataSet.new(line.points(canvas.xrange)) do |ds|
-    ds.with = line.draw
+  plot.data << Gnuplot::DataSet.new(line.draw(canvas.xrange)) do |ds|
+    ds.with = line.style
     ds.linewidth = 3
   end
 end
